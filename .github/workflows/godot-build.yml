@@ -2,7 +2,7 @@ name: Godot Build
 
 on:
   push:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -10,21 +10,14 @@ jobs:
 
     container:
       image: barichello/godot-ci:4.7
-      
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y wget unzip
+      - name: Verify Godot
+        run: godot --version
 
-      - name: Download Godot 4.7
+      - name: Build Linux export
         run: |
-          wget -O godot.zip "https://downloads.godotengine.org/?version=4.7&flavor=stable&slug=linux.x86_64.zip&platform=linux.x86_64"
-          unzip godot.zip
-          chmod +x Godot_v4.7-stable_linux.x86_64
-
-      - name: Export project
-        run: |
-          mkdir -p build
-          ./Godot_v4.2.2-stable_linux.x86_64 --headless --quit --export-release "Linux/X11" build/game.x86_64
+          godot --headless --path . --export-release "Linux/X11" build/game.x86_64
