@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://7fg1g3tmjx6k"]
+
+[node name="ProjectileBasic" type="Area2D" unique_id=1282449608]
+
+[node name="Visual" type="ColorRect" parent="." unique_id=1946619795]
+offset_left = -3.0
+offset_top = -3.0
+offset_right = 3.0
+offset_bottom = 3.0

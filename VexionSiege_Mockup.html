@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vexion Siege — UI Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060810;
+  --s1:#0a0d16;
+  --s2:#0f1220;
+  --s3:#141828;
+  --border:#ffffff0a;
+  --border2:#ffffff14;
+  --border3:#ffffff22;
+  --text:#d8e0f5;
+  --muted:#5a6280;
+  --dim:#2e3350;
+  --blue:#4488ff;
+  --blue2:#1144aa;
+  --blue-glow:rgba(68,136,255,0.12);
+  --green:#34d47a;
+  --amber:#f5a020;
+  --coral:#ff5566;
+  --purple:#9966ff;
+  --teal:#22ccbb;
+  --mono:'Space Mono',monospace;
+  --display:'Rajdhani',sans-serif;
+}
+body{
+  background:#03040a;
+  color:var(--text);
+  font-family:var(--display);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:2rem 1rem 4rem;
+  gap:3rem;
+}
+.page-label{
+  font-family:var(--mono);font-size:11px;color:var(--muted);
+  letter-spacing:.15em;text-transform:uppercase;margin-bottom:.5rem;text-align:center;
+}
+.screen-row{
+  display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;justify-content:center;
+}
+.phone{
+  width:360px;height:780px;
+  background:var(--bg);
+  border-radius:40px;
+  border:1.5px solid #ffffff15;
+  overflow:hidden;
+  position:relative;
+  flex-shrink:0;
+}
+.notch{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:100px;height:24px;background:#000;
+  border-radius:0 0 14px 14px;z-index:20;
+}
+.stars{
+  position:absolute;inset:0;overflow:hidden;pointer-events:none;
+}
+.star{
+  position:absolute;
+  background:#fff;
+  border-radius:50%;
+  opacity:0;
+  animation:twinkle linear infinite;
+}
+@keyframes twinkle{
+  0%{opacity:0} 50%{opacity:var(--op)} 100%{opacity:0}
+}
+
+/* ── COMBAT SCREEN ── */
+.combat{display:flex;flex-direction:column;height:100%;position:relative;}
+
+.top-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:32px 18px 10px;
+  border-bottom:1px solid var(--border2);
+  position:relative;z-index:2;
+}
+.wave-badge{
+  font-family:var(--mono);font-size:11px;color:var(--blue);
+  letter-spacing:.1em;
+}
+.wave-num{
+  font-family:var(--mono);font-size:22px;font-weight:700;
+  color:#fff;line-height:1;
+}
+.menu-btn{
+  width:32px;height:32px;border:1px solid var(--border3);
+  border-radius:8px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:4px;
+}
+.menu-btn span{width:14px;height:1.5px;background:var(--muted);}
+
+.stat-bars{
+  padding:8px 18px 10px;
+  border-bottom:1px solid var(--border);
+  display:flex;flex-direction:column;gap:5px;
+  position:relative;z-index:2;
+}
+.stat-row{display:flex;align-items:center;gap:8px;}
+.stat-label{font-family:var(--mono);font-size:9px;color:var(--muted);width:20px;letter-spacing:.06em;}
+.bar-bg{flex:1;height:5px;background:#ffffff08;border-radius:3px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;}
+.bar-hp{background:linear-gradient(90deg,#cc2233,#ff4455);}
+.bar-sh{background:linear-gradient(90deg,#1155cc,#4488ff);}
+.stat-val{font-family:var(--mono);font-size:9px;color:var(--muted);width:36px;text-align:right;}
+
+.game-field{
+  flex:1;position:relative;overflow:hidden;
+}
+.field-bg{position:absolute;inset:0;}
+
+.range-ring{
+  position:absolute;
+  left:50%;top:58%;
+  transform:translate(-50%,-50%);
+  width:200px;height:200px;
+  border:1px solid rgba(68,136,255,0.18);
+  border-radius:50%;
+}
+.range-ring-inner{
+  position:absolute;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  width:190px;height:190px;
+  border:1px solid rgba(68,136,255,0.06);
+  border-radius:50%;
+}
+
+.ship{
+  position:absolute;left:50%;top:58%;
+  transform:translate(-50%,-50%);
+  width:0;height:0;
+  border-left:13px solid transparent;
+  border-right:13px solid transparent;
+  border-bottom:26px solid #4488ff;
+  filter:drop-shadow(0 0 8px rgba(68,136,255,0.6));
+}
+.ship-glow{
+  position:absolute;left:50%;top:58%;
+  transform:translate(-50%,-50%);
+  width:32px;height:32px;
+  background:radial-gradient(circle,rgba(68,136,255,0.25),transparent 70%);
+  border-radius:50%;margin-top:4px;margin-left:-2px;
+}
+
+.enemy{
+  position:absolute;
+  border-radius:50%;
+}
+.e1{width:14px;height:14px;background:#b0bec5;top:20%;left:25%;
+  box-shadow:0 0 6px rgba(176,190,197,0.4);}
+.e2{width:10px;height:10px;background:#b0bec5;top:15%;left:65%;
+  box-shadow:0 0 4px rgba(176,190,197,0.3);}
+.e3{width:22px;height:22px;background:#78909c;top:30%;left:55%;
+  box-shadow:0 0 8px rgba(120,144,156,0.4);}
+.e4{width:8px;height:8px;background:#cfd8dc;top:10%;left:42%;
+  box-shadow:0 0 3px rgba(207,216,220,0.4);}
+.e5{width:8px;height:8px;background:#cfd8dc;top:22%;left:78%;
+  box-shadow:0 0 3px rgba(207,216,220,0.4);}
+
+.bullet{
+  position:absolute;
+  width:3px;height:8px;
+  background:#fff;
+  border-radius:2px;
+  box-shadow:0 0 4px rgba(68,136,255,0.8);
+}
+.b1{left:49.5%;top:48%;}
+.b2{left:47%;top:38%;}
+.b3{left:52%;top:32%;}
+
+.dmg-num{
+  position:absolute;
+  font-family:var(--mono);font-size:10px;
+  color:#fff;font-weight:700;
+  text-shadow:0 0 6px rgba(68,136,255,0.8);
+}
+.d1{left:22%;top:17%;}
+.d2{left:62%;top:12%;}
+
+.credit-pop{
+  position:absolute;
+  font-family:var(--mono);font-size:9px;
+  color:var(--amber);
+}
+.c1{left:28%;top:24%;}
+
+.bottom-hud{
+  padding:10px 18px 14px;
+  border-top:1px solid var(--border2);
+  position:relative;z-index:2;
+}
+.credits-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+.credit-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.08em;}
+.credit-val{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--amber);}
+
+.upgrade-btn{
+  width:100%;padding:10px;
+  background:var(--blue-glow);
+  border:1px solid rgba(68,136,255,0.25);
+  border-radius:10px;
+  text-align:center;
+  font-family:var(--display);font-size:13px;font-weight:600;
+  color:var(--blue);letter-spacing:.06em;
+  cursor:pointer;
+}
+
+.ability-row{
+  display:flex;gap:8px;margin-top:10px;
+}
+.ability-slot{
+  flex:1;height:38px;
+  border:1px solid var(--border2);border-radius:8px;
+  background:var(--s1);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:9px;color:var(--dim);
+  letter-spacing:.05em;
+}
+.ability-slot.active{
+  border-color:rgba(68,136,255,0.3);
+  background:rgba(68,136,255,0.06);
+  color:var(--blue);
+}
+
+/* ── UPGRADE PANEL SCREEN ── */
+.upgrade-screen{
+  display:flex;flex-direction:column;height:100%;
+}
+.up-header{
+  padding:32px 18px 14px;
+  border-bottom:1px solid var(--border2);
+}
+.up-title{
+  font-family:var(--mono);font-size:10px;color:var(--muted);
+  letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;
+}
+.up-wave{
+  font-family:var(--display);font-size:20px;font-weight:700;color:#fff;
+}
+.up-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+
+.up-tabs{
+  display:flex;border-bottom:1px solid var(--border2);
+}
+.utab{
+  flex:1;padding:10px 0;
+  font-family:var(--mono);font-size:9px;letter-spacing:.08em;
+  text-align:center;color:var(--muted);
+  border-bottom:2px solid transparent;cursor:pointer;
+  text-transform:uppercase;
+}
+.utab.active{color:var(--blue);border-bottom-color:var(--blue);}
+
+.up-list{
+  flex:1;overflow-y:auto;padding:12px 14px;
+  display:flex;flex-direction:column;gap:8px;
+}
+.up-card{
+  border:1px solid var(--border2);border-radius:10px;
+  background:var(--s1);
+  padding:12px 14px;
+  display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:border-color .15s;
+}
+.up-card:hover{border-color:var(--border3);}
+.up-card.highlight{border-color:rgba(68,136,255,0.35);background:rgba(68,136,255,0.05);}
+.up-card.epic{border-color:rgba(153,102,255,0.35);background:rgba(153,102,255,0.05);}
+.up-card.legendary{border-color:rgba(245,160,32,0.4);background:rgba(245,160,32,0.05);}
+.up-icon{
+  width:36px;height:36px;border-radius:8px;
+  background:var(--s2);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+.up-info{flex:1;}
+.up-name{font-size:14px;font-weight:600;color:#fff;margin-bottom:2px;}
+.up-desc{font-size:11px;color:var(--muted);line-height:1.4;}
+.up-right{text-align:right;flex-shrink:0;}
+.up-level{font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:4px;}
+.up-cost{
+  font-family:var(--mono);font-size:11px;font-weight:700;color:var(--amber);
+}
+.rarity-dot{
+  width:6px;height:6px;border-radius:50%;margin-bottom:6px;margin-left:auto;
+}
+.r-common{background:#8899aa;}
+.r-rare{background:var(--blue);}
+.r-epic{background:var(--purple);}
+.r-legendary{background:var(--amber);}
+
+.up-choose{
+  padding:12px 14px;
+  border-top:1px solid var(--border2);
+  font-family:var(--mono);font-size:9px;color:var(--muted);
+  text-align:center;letter-spacing:.06em;
+}
+
+/* ── SPACEPORT SCREEN ── */
+.spaceport-screen{
+  display:flex;flex-direction:column;height:100%;
+}
+.sp-header{
+  padding:32px 18px 14px;
+  border-bottom:1px solid var(--border2);
+  display:flex;align-items:flex-start;justify-content:space-between;
+}
+.sp-title-block{}
+.sp-eyebrow{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;}
+.sp-title{font-family:var(--display);font-size:22px;font-weight:700;color:#fff;}
+.sp-currency{
+  display:flex;flex-direction:column;align-items:flex-end;gap:4px;
+}
+.currency-chip{
+  display:flex;align-items:center;gap:6px;
+  background:var(--s2);border:1px solid var(--border2);
+  border-radius:20px;padding:4px 10px;
+}
+.currency-dot{width:7px;height:7px;border-radius:50%;}
+.cd-void{background:var(--purple);}
+.cd-gem{background:var(--teal);}
+.currency-val{font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;}
+.currency-name{font-family:var(--mono);font-size:9px;color:var(--muted);}
+
+.sp-tabs{display:flex;border-bottom:1px solid var(--border2);}
+.sptab{
+  flex:1;padding:10px 0;
+  font-family:var(--mono);font-size:9px;letter-spacing:.06em;
+  text-align:center;color:var(--muted);
+  border-bottom:2px solid transparent;cursor:pointer;
+  text-transform:uppercase;
+}
+.sptab.active{color:var(--purple);border-bottom-color:var(--purple);}
+
+.sp-grid{
+  flex:1;overflow-y:auto;padding:12px 14px;
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+}
+.sp-card{
+  border:1px solid var(--border2);border-radius:10px;
+  background:var(--s1);padding:12px;
+  display:flex;flex-direction:column;gap:6px;
+  cursor:pointer;
+}
+.sp-card.maxed{opacity:.4;}
+.sp-card-icon{font-size:18px;margin-bottom:2px;}
+.sp-card-name{font-size:12px;font-weight:600;color:#fff;line-height:1.3;}
+.sp-card-desc{font-size:10px;color:var(--muted);line-height:1.4;}
+.sp-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:2px;}
+.sp-level-bar{flex:1;height:3px;background:#ffffff0a;border-radius:2px;margin-right:8px;overflow:hidden;}
+.sp-level-fill{height:100%;border-radius:2px;background:var(--purple);}
+.sp-cost{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--purple);}
+.sp-cost.maxed-label{color:var(--dim);font-size:9px;}
+
+.sp-run-btn{
+  margin:0 14px 16px;
+  padding:13px;
+  background:rgba(68,136,255,0.12);
+  border:1px solid rgba(68,136,255,0.3);
+  border-radius:12px;
+  text-align:center;
+  font-family:var(--display);font-size:15px;font-weight:700;
+  color:var(--blue);letter-spacing:.08em;
+  cursor:pointer;
+}
+
+/* ── GAME OVER SCREEN ── */
+.gameover-screen{
+  display:flex;flex-direction:column;height:100%;
+  align-items:center;
+  padding:40px 20px 20px;
+  position:relative;
+}
+.go-eyebrow{
+  font-family:var(--mono);font-size:9px;color:var(--coral);
+  letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px;margin-top:20px;
+}
+.go-title{
+  font-family:var(--display);font-size:36px;font-weight:700;
+  color:#fff;text-align:center;margin-bottom:4px;line-height:1;
+}
+.go-sub{font-size:13px;color:var(--muted);margin-bottom:24px;}
+
+.go-stats{
+  width:100%;
+  border:1px solid var(--border2);border-radius:12px;
+  background:var(--s1);overflow:hidden;margin-bottom:16px;
+}
+.go-stat-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 16px;border-bottom:1px solid var(--border);
+}
+.go-stat-row:last-child{border-bottom:none;}
+.go-stat-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.06em;}
+.go-stat-val{font-family:var(--mono);font-size:13px;font-weight:700;color:#fff;}
+.go-stat-val.highlight{color:var(--amber);}
+
+.go-reward{
+  width:100%;
+  border:1px solid rgba(153,102,255,0.25);border-radius:12px;
+  background:rgba(153,102,255,0.05);
+  padding:14px 16px;margin-bottom:20px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.go-reward-label{font-family:var(--mono);font-size:9px;color:var(--purple);letter-spacing:.1em;text-transform:uppercase;}
+.go-reward-val{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--purple);}
+
+.go-btns{width:100%;display:flex;flex-direction:column;gap:8px;margin-top:auto;}
+.go-btn-primary{
+  padding:13px;border-radius:12px;
+  background:rgba(68,136,255,0.12);
+  border:1px solid rgba(68,136,255,0.3);
+  font-family:var(--display);font-size:15px;font-weight:700;
+  color:var(--blue);letter-spacing:.08em;text-align:center;cursor:pointer;
+}
+.go-btn-secondary{
+  padding:11px;border-radius:12px;
+  border:1px solid var(--border2);
+  font-family:var(--display);font-size:13px;font-weight:600;
+  color:var(--muted);letter-spacing:.06em;text-align:center;cursor:pointer;
+}
+.go-continue{
+  padding:11px;border-radius:12px;
+  border:1px solid rgba(245,160,32,0.3);
+  background:rgba(245,160,32,0.06);
+  font-family:var(--display);font-size:13px;font-weight:600;
+  color:var(--amber);letter-spacing:.06em;text-align:center;cursor:pointer;
+}
+.go-continue span{font-family:var(--mono);font-size:10px;color:var(--muted);display:block;margin-top:2px;}
+
+/* tab switcher */
+.screen-tabs{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;justify-content:center;}
+.stab{
+  font-family:var(--mono);font-size:10px;padding:6px 14px;
+  border:1px solid #ffffff14;border-radius:6px;
+  color:var(--muted);cursor:pointer;background:transparent;
+  letter-spacing:.06em;text-transform:uppercase;transition:all .15s;
+}
+.stab.active{color:var(--text);background:#0a0d16;border-color:#ffffff28;}
+.screen{display:none;}
+.screen.active{display:block;}
+</style>
+</head>
+<body>
+
+<div class="page-label">Vexion Siege — UI Mockup v2 (Godot)</div>
+
+<div class="screen-tabs">
+  <button class="stab active" onclick="show('combat')">Combat</button>
+  <button class="stab" onclick="show('upgrade')">Upgrades</button>
+  <button class="stab" onclick="show('spaceport')">Spaceport</button>
+  <button class="stab" onclick="show('gameover')">Game over</button>
+</div>
+
+<!-- COMBAT SCREEN -->
+<div class="screen active" id="s-combat">
+<div class="phone">
+  <div class="notch"></div>
+  <div class="stars" id="stars-combat"></div>
+  <div class="combat">
+    <div class="top-bar">
+      <div>
+        <div class="wave-badge">WAVE</div>
+        <div class="wave-num">047</div>
+      </div>
+      <div class="menu-btn"><span></span><span></span><span></span></div>
+    </div>
+    <div class="stat-bars">
+      <div class="stat-row">
+        <div class="stat-label">HP</div>
+        <div class="bar-bg"><div class="bar-fill bar-hp" style="width:72%"></div></div>
+        <div class="stat-val">72/100</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-label">SH</div>
+        <div class="bar-bg"><div class="bar-fill bar-sh" style="width:100%"></div></div>
+        <div class="stat-val">50/50</div>
+      </div>
+    </div>
+    <div class="game-field">
+      <div class="range-ring"></div>
+      <div class="range-ring-inner"></div>
+      <div class="ship-glow"></div>
+      <div class="ship"></div>
+      <div class="enemy e1"></div>
+      <div class="enemy e2"></div>
+      <div class="enemy e3"></div>
+      <div class="enemy e4"></div>
+      <div class="enemy e5"></div>
+      <div class="bullet b1"></div>
+      <div class="bullet b2"></div>
+      <div class="bullet b3"></div>
+      <div class="dmg-num d1">12</div>
+      <div class="dmg-num d2">8</div>
+      <div class="credit-pop c1">+1</div>
+    </div>
+    <div class="bottom-hud">
+      <div class="credits-row">
+        <div class="credit-label">CREDITS</div>
+        <div class="credit-val">4.2K</div>
+      </div>
+      <div class="upgrade-btn">UPGRADES</div>
+      <div class="ability-row">
+        <div class="ability-slot active">NOVA<br>12s</div>
+        <div class="ability-slot active">WARP<br>ready</div>
+        <div class="ability-slot">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- UPGRADE SCREEN -->
+<div class="screen" id="s-upgrade">
+<div class="phone">
+  <div class="notch"></div>
+  <div class="stars" id="stars-upgrade"></div>
+  <div class="upgrade-screen">
+    <div class="up-header">
+      <div class="up-title">WAVE CLEAR</div>
+      <div class="up-wave">Wave 47 complete</div>
+      <div class="up-sub">Choose one upgrade</div>
+    </div>
+    <div class="up-tabs">
+      <div class="utab active">Offensive</div>
+      <div class="utab">Defensive</div>
+      <div class="utab">Economy</div>
+    </div>
+    <div class="up-list">
+      <div class="up-card highlight">
+        <div class="up-icon">⚡</div>
+        <div class="up-info">
+          <div class="up-name">Fire Rate</div>
+          <div class="up-desc">+12% shots per second</div>
+        </div>
+        <div class="up-right">
+          <div class="rarity-dot r-common"></div>
+          <div class="up-level">Lv 4/20</div>
+          <div class="up-cost">380</div>
+        </div>
+      </div>
+      <div class="up-card epic">
+        <div class="up-icon">🔗</div>
+        <div class="up-info">
+          <div class="up-name">Chain Lightning</div>
+          <div class="up-desc">On hit, arc to nearest enemy for 60% damage</div>
+        </div>
+        <div class="up-right">
+          <div class="rarity-dot r-epic"></div>
+          <div class="up-level">Lv 1/5</div>
+          <div class="up-cost">1.2K</div>
+        </div>
+      </div>
+      <div class="up-card">
+        <div class="up-icon">💥</div>
+        <div class="up-info">
+          <div class="up-name">Damage</div>
+          <div class="up-desc">+18% base damage</div>
+        </div>
+        <div class="up-right">
+          <div class="rarity-dot r-common"></div>
+          <div class="up-level">Lv 7/20</div>
+          <div class="up-cost">520</div>
+        </div>
+      </div>
+      <div class="up-card">
+        <div class="up-icon">🎯</div>
+        <div class="up-info">
+          <div class="up-name">Crit Chance</div>
+          <div class="up-desc">+5% critical hit chance</div>
+        </div>
+        <div class="up-right">
+          <div class="rarity-dot r-rare"></div>
+          <div class="up-level">Lv 2/15</div>
+          <div class="up-cost">700</div>
+        </div>
+      </div>
+      <div class="up-card legendary">
+        <div class="up-icon">🛡</div>
+        <div class="up-info">
+          <div class="up-name">Second Wind</div>
+          <div class="up-desc">On death, revive once with 25% HP</div>
+        </div>
+        <div class="up-right">
+          <div class="rarity-dot r-legendary"></div>
+          <div class="up-level">Lv 0/1</div>
+          <div class="up-cost">3.5K</div>
+        </div>
+      </div>
+    </div>
+    <div class="up-choose">TAP AN UPGRADE TO PURCHASE</div>
+  </div>
+</div>
+</div>
+
+<!-- SPACEPORT SCREEN -->
+<div class="screen" id="s-spaceport">
+<div class="phone">
+  <div class="notch"></div>
+  <div class="stars" id="stars-spaceport"></div>
+  <div class="spaceport-screen">
+    <div class="sp-header">
+      <div class="sp-title-block">
+        <div class="sp-eyebrow">META UPGRADES</div>
+        <div class="sp-title">Spaceport</div>
+      </div>
+      <div class="sp-currency">
+        <div class="currency-chip">
+          <div class="currency-dot cd-void"></div>
+          <div class="currency-val">248</div>
+          <div class="currency-name">cores</div>
+        </div>
+        <div class="currency-chip">
+          <div class="currency-dot cd-gem"></div>
+          <div class="currency-val">40</div>
+          <div class="currency-name">gems</div>
+        </div>
+      </div>
+    </div>
+    <div class="sp-tabs">
+      <div class="sptab active">Hull</div>
+      <div class="sptab">Economy</div>
+      <div class="sptab">Galaxy</div>
+    </div>
+    <div class="sp-grid">
+      <div class="sp-card">
+        <div class="sp-card-icon">🔩</div>
+        <div class="sp-card-name">Reinforced Hull</div>
+        <div class="sp-card-desc">+25 base max HP</div>
+        <div class="sp-card-footer">
+          <div class="sp-level-bar"><div class="sp-level-fill" style="width:35%"></div></div>
+          <div class="sp-cost">70vc</div>
+        </div>
+      </div>
+      <div class="sp-card">
+        <div class="sp-card-icon">🛡</div>
+        <div class="sp-card-name">Shield Gen</div>
+        <div class="sp-card-desc">+25 max shield</div>
+        <div class="sp-card-footer">
+          <div class="sp-level-bar"><div class="sp-level-fill" style="width:20%"></div></div>
+          <div class="sp-cost">50vc</div>
+        </div>
+      </div>
+      <div class="sp-card">
+        <div class="sp-card-icon">⚡</div>
+        <div class="sp-card-name">Reactor Boost</div>
+        <div class="sp-card-desc">+5% base fire rate</div>
+        <div class="sp-card-footer">
+          <div class="sp-level-bar"><div class="sp-level-fill" style="width:60%"></div></div>
+          <div class="sp-cost">60vc</div>
+        </div>
+      </div>
+      <div class="sp-card">
+        <div class="sp-card-icon">🎯</div>
+        <div class="sp-card-name">Targeting Sys</div>
+        <div class="sp-card-desc">+3% base crit chance</div>
+        <div class="sp-card-footer">
+          <div class="sp-level-bar"><div class="sp-level-fill" style="width:10%"></div></div>
+          <div class="sp-cost">80vc</div>
+        </div>
+      </div>
+      <div class="sp-card maxed">
+        <div class="sp-card-icon">❄</div>
+        <div class="sp-card-name">Engine Coolant</div>
+        <div class="sp-card-desc">-10% upgrade cost</div>
+        <div class="sp-card-footer">
+          <div class="sp-level-bar"><div class="sp-level-fill" style="width:100%"></div></div>
+          <div class="sp-cost maxed-label">MAXED</div>
+        </div>
+      </div>
+      <div class="sp-card">
+        <div class="sp-card-icon">🔭</div>
+        <div class="sp-card-name">Galaxy Scanner</div>
+        <div class="sp-card-desc">Reveal enemy HP bars</div>
+        <div class="sp-card-footer">
+          <div class="sp-level-bar"><div class="sp-level-fill" style="width:0%"></div></div>
+          <div class="sp-cost">50vc</div>
+        </div>
+      </div>
+    </div>
+    <div class="sp-run-btn">START NEW RUN</div>
+  </div>
+</div>
+</div>
+
+<!-- GAME OVER SCREEN -->
+<div class="screen" id="s-gameover">
+<div class="phone">
+  <div class="notch"></div>
+  <div class="stars" id="stars-go"></div>
+  <div class="gameover-screen">
+    <div class="go-eyebrow">RUN ENDED</div>
+    <div class="go-title">Ship<br>Destroyed</div>
+    <div class="go-sub">Wave 47 · Milky Way</div>
+    <div class="go-stats">
+      <div class="go-stat-row">
+        <div class="go-stat-label">WAVES SURVIVED</div>
+        <div class="go-stat-val highlight">47</div>
+      </div>
+      <div class="go-stat-row">
+        <div class="go-stat-label">ENEMIES KILLED</div>
+        <div class="go-stat-val">1,284</div>
+      </div>
+      <div class="go-stat-row">
+        <div class="go-stat-label">CREDITS EARNED</div>
+        <div class="go-stat-val">18.4K</div>
+      </div>
+      <div class="go-stat-row">
+        <div class="go-stat-label">BEST WAVE</div>
+        <div class="go-stat-val">47</div>
+      </div>
+      <div class="go-stat-row">
+        <div class="go-stat-label">DPS (PEAK)</div>
+        <div class="go-stat-val">342</div>
+      </div>
+    </div>
+    <div class="go-reward">
+      <div>
+        <div class="go-reward-label">VOID CORES EARNED</div>
+        <div class="go-reward-val">+24 vc</div>
+      </div>
+      <div style="font-size:22px">◈</div>
+    </div>
+    <div class="go-btns">
+      <div class="go-continue">
+        CONTINUE RUN — 30 GEMS
+        <span>Revive with 50% HP · Once per run</span>
+      </div>
+      <div class="go-btn-primary">ENTER SPACEPORT</div>
+      <div class="go-btn-secondary">RUN AGAIN</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+function makeStars(containerId){
+  var c=document.getElementById(containerId);
+  if(!c)return;
+  for(var i=0;i<60;i++){
+    var s=document.createElement('div');
+    s.className='star';
+    var size=Math.random()<0.7?1:Math.random()<0.5?1.5:2;
+    s.style.cssText=[
+      'width:'+size+'px',
+      'height:'+size+'px',
+      'left:'+(Math.random()*100)+'%',
+      'top:'+(Math.random()*100)+'%',
+      '--op:'+(0.15+Math.random()*0.5),
+      'animation-duration:'+(2+Math.random()*4)+'s',
+      'animation-delay:'+(Math.random()*4)+'s'
+    ].join(';');
+    c.appendChild(s);
+  }
+}
+['stars-combat','stars-upgrade','stars-spaceport','stars-go'].forEach(makeStars);
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.querySelectorAll('.stab').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('s-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

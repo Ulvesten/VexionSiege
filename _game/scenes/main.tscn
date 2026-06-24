@@ -1,0 +1,100 @@
+[gd_scene format=3 uid="uid://35e2ydqnq73h"]
+
+[ext_resource type="Script" uid="uid://dg0kypy4njjb3" path="res://_game/scripts/core/main.gd" id="1_6v3cb"]
+[ext_resource type="Script" uid="uid://c2y7qujy8cnn2" path="res://_game/scripts/managers/starfield_layer.gd" id="2_2jfle"]
+[ext_resource type="Script" uid="uid://d2rntq2npesul" path="res://_game/scripts/managers/ship_manager.gd" id="2_tr8tv"]
+[ext_resource type="Script" uid="uid://c1v0irn7njx34" path="res://_game/scripts/managers/wave_manager.gd" id="3_n8jn0"]
+[ext_resource type="Script" uid="uid://bjb08p5uxoee6" path="res://_game/scripts/managers/enemy_manager.gd" id="4_2jfle"]
+[ext_resource type="Script" uid="uid://cavrfjjs2bmnp" path="res://_game/scripts/managers/effect_layer.gd" id="4_thug3"]
+[ext_resource type="Script" uid="uid://df38inow62cog" path="res://_game/scripts/managers/auto_fire_system.gd" id="5_thug3"]
+[ext_resource type="Script" uid="uid://boldubh7w0avs" path="res://_game/scripts/managers/shield_system.gd" id="6_vifi6"]
+[ext_resource type="Script" uid="uid://bwixjv67eb77v" path="res://_game/scripts/managers/upgrade_manager.gd" id="7_3w7h5"]
+[ext_resource type="Script" uid="uid://wfwunpw7x7lo" path="res://_game/scripts/managers/economy_manager.gd" id="8_0awk6"]
+[ext_resource type="Script" uid="uid://bxjublx5pnlyn" path="res://_game/scripts/managers/spaceport_system.gd" id="9_ur2bb"]
+[ext_resource type="Script" uid="uid://ie1us27kihhv" path="res://_game/scripts/managers/ability_manager.gd" id="10_720ud"]
+[ext_resource type="Script" uid="uid://capyp2d3yibll" path="res://_game/scripts/managers/prestige_manager.gd" id="11_o4goo"]
+[ext_resource type="Script" uid="uid://w0tgbvgfh74a" path="res://_game/scripts/ui/hud.gd" id="12_3n8k3"]
+[ext_resource type="Script" uid="uid://bagy32gu2sm3h" path="res://_game/scripts/ui/upgrade_panel.gd" id="13_td307"]
+[ext_resource type="Script" uid="uid://ckvxn06d3u43l" path="res://_game/scripts/ui/game_over_panel.gd" id="14_prgrb"]
+[ext_resource type="Script" uid="uid://bicweydpyi7yv" path="res://_game/scripts/ui/spaceport_panel.gd" id="15_s36ay"]
+[ext_resource type="PackedScene" uid="uid://l13l2ab26ynb" path="res://_game/scenes/enemies/enemy_basic.tscn" id="16_enm"]
+[ext_resource type="PackedScene" uid="uid://7fg1g3tmjx6k" path="res://_game/scenes/effects/projectile_basic.tscn" id="17_prj"]
+[ext_resource type="Script" uid="uid://bnat3ntmxhorp" path="res://_game/scripts/ui/wave_announcement.gd" id="20_vifi6"]
+[ext_resource type="Script" uid="uid://b2ucjmm1kea1f" path="res://_game/scripts/ui/stats_panel.gd" id="21_3w7h5"]
+
+[node name="Main" type="Node2D" unique_id=1099058480]
+script = ExtResource("1_6v3cb")
+
+[node name="Background" type="Node2D" parent="." unique_id=591500806]
+
+[node name="StarfieldLayer" type="Node2D" parent="Background" unique_id=3991214]
+script = ExtResource("2_2jfle")
+
+[node name="GameField" type="Node2D" parent="." unique_id=642334016]
+
+[node name="Ship" type="Node2D" parent="GameField" unique_id=928331467]
+position = Vector2(540, 1700)
+script = ExtResource("2_tr8tv")
+
+[node name="ShipVisual" type="Polygon2D" parent="GameField/Ship" unique_id=123456789]
+color = Color(0.31, 0.765, 0.969, 1)
+polygon = PackedVector2Array(0, -30, -20, 20, 20, 20)
+
+[node name="EnemyLayer" type="Node2D" parent="GameField" unique_id=1947521138]
+
+[node name="ProjectileLayer" type="Node2D" parent="GameField" unique_id=2017700693]
+
+[node name="EffectLayer" type="Node2D" parent="GameField" unique_id=830952506]
+script = ExtResource("4_thug3")
+
+[node name="WaveManager" type="Node" parent="GameField" unique_id=56928678]
+script = ExtResource("3_n8jn0")
+
+[node name="EnemyManager" type="Node" parent="GameField" unique_id=1817943628]
+script = ExtResource("4_2jfle")
+enemy_scene = ExtResource("16_enm")
+
+[node name="AutoFireSystem" type="Node" parent="GameField" unique_id=454604260]
+script = ExtResource("5_thug3")
+projectile_scene = ExtResource("17_prj")
+
+[node name="ShieldSystem" type="Node" parent="GameField" unique_id=744055822]
+script = ExtResource("6_vifi6")
+
+[node name="UpgradeManager" type="Node" parent="GameField" unique_id=1385205509]
+script = ExtResource("7_3w7h5")
+
+[node name="EconomyManager" type="Node" parent="GameField" unique_id=2009985532]
+script = ExtResource("8_0awk6")
+
+[node name="SpaceportSystem" type="Node" parent="GameField" unique_id=978145552]
+script = ExtResource("9_ur2bb")
+
+[node name="AbilityManager" type="Node" parent="GameField" unique_id=736395901]
+script = ExtResource("10_720ud")
+
+[node name="PrestigeManager" type="Node" parent="GameField" unique_id=1772829976]
+script = ExtResource("11_o4goo")
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1941669537]
+
+[node name="HUD" type="CanvasLayer" parent="UI" unique_id=2098165629]
+script = ExtResource("12_3n8k3")
+
+[node name="UpgradePanel" type="CanvasLayer" parent="UI" unique_id=1321265902]
+script = ExtResource("13_td307")
+
+[node name="GameOverPanel" type="CanvasLayer" parent="UI" unique_id=1559448888]
+script = ExtResource("14_prgrb")
+
+[node name="SpaceportPanel" type="CanvasLayer" parent="UI" unique_id=1594253683]
+script = ExtResource("15_s36ay")
+
+[node name="WaveAnnouncement" type="CanvasLayer" parent="UI" unique_id=1177042388]
+script = ExtResource("20_vifi6")
+
+[node name="StatsPanel" type="CanvasLayer" parent="UI" unique_id=128536480]
+script = ExtResource("21_3w7h5")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1703619245]
+position = Vector2(540, 960)

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($exe = \"C:\\\\Users\\\\calle\\\\Downloads\\\\Godot_v4.7-stable_win64.exe\\\\Godot_v4.7-stable_win64_console.exe\"; if \\(-not \\(Test-Path $exe\\)\\) { $exe = \"C:\\\\Users\\\\calle\\\\Downloads\\\\Godot_v4.7-stable_win64.exe\" }; & $exe --headless --path \"C:\\\\Users\\\\calle\\\\Documents\\\\Godot\\\\Vexionsiege\" --editor --quit 2>&1 | Select-Object -Last 50)",
+      "mcp__godot-ai__editor_state",
+      "mcp__godot-ai__logs_read",
+      "mcp__godot-ai__project_run",
+      "mcp__godot-ai__editor_screenshot",
+      "mcp__godot-ai__game_manage"
+    ]
+  }
+}

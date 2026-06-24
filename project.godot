@@ -1,0 +1,54 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="VexionSiege"
+run/main_scene="res://_game/scenes/main.tscn"
+config/features=PackedStringArray("4.7", "Mobile")
+config/icon="res://icon.svg"
+
+[autoload]
+
+_mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
+EventBus="*res://_game/scripts/core/event_bus.gd"
+TickSystem="*res://_game/scripts/core/tick_system.gd"
+SaveManager="*res://_game/scripts/core/save_manager.gd"
+GameManager="*res://_game/scripts/core/game_manager.gd"
+AudioManager="*res://_game/scripts/core/audio_manager.gd"
+CameraManager="*res://_game/scripts/core/camera_manager.gd"
+DebugLogger="*res://_game/scripts/core/debug_logger.gd"
+
+[display]
+
+window/size/viewport_width=1080
+window/size/viewport_height=1920
+window/size/window_width_override=405
+window/size/window_height_override=878
+window/stretch/mode="canvas_items"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_ai/plugin.cfg")
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
+[rendering]
+
+rendering_device/driver.windows="d3d12"
+renderer/rendering_method="mobile"
+environment/defaults/default_clear_color={
+"a": 1.0,
+"b": 0.102,
+"g": 0.0392,
+"r": 0.0196
+}

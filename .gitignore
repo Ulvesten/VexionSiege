@@ -1,0 +1,7 @@
+.godot/
+.import/
+export/
+*.tmp
+*.cache
+.DS_Store
+_game/assets/sprites/enemies/_raw_unprocessed

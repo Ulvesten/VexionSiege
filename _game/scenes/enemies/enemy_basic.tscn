@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://l13l2ab26ynb"]
+
+[node name="EnemyBasic" type="CharacterBody2D" unique_id=1186532022]
+
+[node name="Visual" type="ColorRect" parent="." unique_id=98148393]
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 10.0
+offset_bottom = 10.0
+color = Color(0.69, 0.745, 0.773, 1)
