@@ -8,6 +8,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    container:
+      image: barichello/godot-ci:4.7
+      
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -15,11 +18,11 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y wget unzip
 
-      - name: Download Godot
+      - name: Download Godot 4.7
         run: |
-          wget https://downloads.tuxfamily.org/godotengine/4.2.2/Godot_v4.2.2-stable_linux.x86_64.zip
-          unzip Godot_v4.2.2-stable_linux.x86_64.zip
-          chmod +x Godot_v4.2.2-stable_linux.x86_64
+          wget -O godot.zip "https://downloads.godotengine.org/?version=4.7&flavor=stable&slug=linux.x86_64.zip&platform=linux.x86_64"
+          unzip godot.zip
+          chmod +x Godot_v4.7-stable_linux.x86_64
 
       - name: Export project
         run: |
