@@ -2,15 +2,19 @@ name: Godot Build
 
 on:
   push:
+    branches: [main]
   workflow_dispatch:
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+env:
+  GODOT_VERSION: "4.7"
+  EXPORT_NAME: vexion-siege
 
+jobs:
+  export-linux:
+    name: Linux Export
+    runs-on: ubuntu-latest
     container:
       image: barichello/godot-ci:4.7
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -18,6 +22,25 @@ jobs:
       - name: Verify Godot
         run: godot --version
 
+      # The image ships export templates under /root, but container jobs run with
+      # HOME=/github/home, so Godot can't find them. Move them into the active HOME.
+      - name: Install export templates
+        run: |
+          mkdir -v -p ~/.local/share/godot/export_templates/
+          mv /root/.local/share/godot/export_templates/* ~/.local/share/godot/export_templates/ || true
+
+      # First headless pass generates the .godot/ import cache so the export is complete.
+      - name: Import resources
+        run: godot --headless --path . --import || true
+
       - name: Build Linux export
         run: |
-          godot --headless --path . --export-release "Linux/X11" build/game.x86_64
+          mkdir -v -p build/linux
+          godot --headless --verbose --path . --export-release "Linux" build/linux/${EXPORT_NAME}.x86_64
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: build/linux
+          if-no-files-found: error
