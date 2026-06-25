@@ -1,34 +1,12 @@
-## Purpose: Wave-clear upgrade panel matching the upgrade screen in VexionSiege_Mockup.html.
+## Purpose: Wave-clear upgrade SHOP — offers 3 random upgrades to buy with Credits.
+## The full read-only catalog lives in catalog_panel.gd (bottom-HUD UPGRADES button).
+## Upgrade definitions + cost math come from the shared UpgradeDefs.
 extends CanvasLayer
-
-# "max" = max level (DESIGN §143-177); upgrades at max are excluded from the offer pool.
-const UPGRADE_POOL: Array[Dictionary] = [
-	{"id":"fire_rate",        "label":"Fire Rate",        "desc":"+12% shots per second",          "rarity":0, "unlock":1,  "max":20, "icon":"⚡"},
-	{"id":"damage",           "label":"Damage",           "desc":"+18% base damage",               "rarity":0, "unlock":1,  "max":20, "icon":"💥"},
-	{"id":"crit_chance",      "label":"Crit Chance",      "desc":"+5% critical hit chance",         "rarity":1, "unlock":1,  "max":15, "icon":"🎯"},
-	{"id":"crit_multiplier",  "label":"Crit Damage",      "desc":"+0.25× on critical hits",         "rarity":1, "unlock":5,  "max":10, "icon":"✦"},
-	{"id":"projectile_count", "label":"Multi-Shot",       "desc":"+1 projectile per shot",          "rarity":1, "unlock":10, "max":5,  "icon":"◈"},
-	{"id":"projectile_speed", "label":"Bullet Speed",     "desc":"+15% projectile speed",           "rarity":0, "unlock":1,  "max":10, "icon":"→"},
-	{"id":"range",            "label":"Range",            "desc":"+8% attack range",               "rarity":0, "unlock":1,  "max":15, "icon":"◎"},
-	{"id":"max_hp",           "label":"Max HP",           "desc":"+20 max hull HP",                "rarity":0, "unlock":1,  "max":20, "icon":"♥"},
-	{"id":"hp_regen",         "label":"HP Regen",         "desc":"+0.5 HP per second",             "rarity":0, "unlock":5,  "max":15, "icon":"✚"},
-	{"id":"damage_reduction", "label":"Armor",            "desc":"-3% incoming damage",            "rarity":1, "unlock":10, "max":10, "icon":"🛡"},
-	{"id":"credit_magnet",    "label":"Credit Magnet",    "desc":"+15% credits from kills",        "rarity":0, "unlock":1,  "max":20, "icon":"◉"},
-	{"id":"void_harvester",   "label":"Void Harvester",   "desc":"+10% Void Cores per run",        "rarity":1, "unlock":1,  "max":10, "icon":"◈"},
-	{"id":"chain_lightning",  "label":"Chain Lightning",  "desc":"On hit, arc to nearby enemy 60%","rarity":2, "unlock":15, "max":5,  "icon":"🔗", "enabled": false},
-	{"id":"explosive_round",  "label":"Explosive Round",  "desc":"On kill, AoE explosion",         "rarity":2, "unlock":20, "max":5,  "icon":"💣", "enabled": false},
-	{"id":"second_wind",      "label":"Second Wind",      "desc":"On death, revive once at 25% HP","rarity":3, "unlock":50, "max":1,  "icon":"🛡", "enabled": false},
-]
 
 var _panel: Panel
 var _header_wave: Label
 var _cards_vbox: VBoxContainer
 var _footer: Label
-# Full-panel transparent button, only active during a manual (read-only) review.
-# The panel covers the bottom-HUD UPGRADES button, so a second UPGRADES tap can't
-# reach it — this on-panel catcher is the reachable close target. Disabled on
-# wave-clear so it doesn't swallow taps meant for the (enabled) upgrade cards.
-var _close_catcher: Button
 var _current_upgrades: Array[String] = []
 var _card_nodes: Array[Control] = []
 
@@ -36,9 +14,6 @@ var _card_nodes: Array[Control] = []
 # upgrade_purchased, so it can track levels itself without reaching into a manager.
 var _levels: Dictionary = {}
 
-# When shown on wave clear, picking advances to the next wave and a 10s auto-pick
-# runs. When opened manually from the UPGRADES button, neither happens.
-var _advance_on_close: bool = true
 var _current_wave: int = 1
 var _auto_timer: Timer
 var _countdown: int = 0
@@ -46,14 +21,14 @@ var _countdown: int = 0
 const PANEL_REST_Y  := 1100.0   # panel is 820px tall → covers y 1100–1920
 const PANEL_HIDDEN_Y := 1960.0
 const AUTO_PICK_SECONDS := 10
-
-# In-run shop pricing: cost = rarity_base × 1.55 ^ (that upgrade's own level).
-const RARITY_BASE: Array[int] = [5, 18, 50, 150]   # common, rare, epic, legendary
-const COST_GROWTH: float = 1.55
+# Credits are floats (kills give fractional/multiplied amounts) so an exact-cost buy
+# can read as 4.9999 vs 5 — a tolerance makes "exactly enough" reliably affordable.
+const CREDIT_EPS := 0.01
 
 var _credits_value: float = 0.0
 var _pending_uid: String = ""
 var _countdown_bar: ProgressBar
+var _credits_label: Label
 
 func _ready() -> void:
 	_build()
@@ -64,9 +39,8 @@ func _ready() -> void:
 	add_child(_auto_timer)
 	EventBus.wave_completed.connect(_on_wave_completed)
 	EventBus.wave_started.connect(func(n: int): _current_wave = n)
-	EventBus.upgrades_toggle_requested.connect(_on_upgrades_toggle_requested)
 	EventBus.game_started.connect(func(): _levels.clear())
-	EventBus.credits_changed.connect(func(c: BigNum): _credits_value = c.value)
+	EventBus.credits_changed.connect(func(c: BigNum): _credits_value = c.value; _refresh_credits_label())
 	EventBus.credits_spend_result.connect(_on_spend_result)
 
 # ── Build ──────────────────────────────────────────────────────────────────
@@ -116,19 +90,6 @@ func _build() -> void:
 	_footer.custom_minimum_size = Vector2(0, 48)
 	outer_vbox.add_child(_footer)
 
-	# Review-mode close catcher — added last so it sits above the cards. Invisible
-	# (no styleboxes drawn) and disabled until a manual review opens it.
-	_close_catcher = Button.new()
-	_close_catcher.flat = true
-	_close_catcher.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_close_catcher.add_theme_stylebox_override("normal", UIStyles.empty())
-	_close_catcher.add_theme_stylebox_override("hover", UIStyles.empty())
-	_close_catcher.add_theme_stylebox_override("pressed", UIStyles.empty())
-	_close_catcher.add_theme_stylebox_override("focus", UIStyles.empty())
-	_close_catcher.visible = false
-	_close_catcher.pressed.connect(_slide_down)
-	_panel.add_child(_close_catcher)
-
 func _build_header() -> Control:
 	var h := VBoxContainer.new()
 	h.add_theme_constant_override("separation", 6)
@@ -166,6 +127,13 @@ func _build_header() -> Control:
 	sub.add_theme_color_override("font_color", Palette.MUTED)
 	inner.add_child(sub)
 
+	# Current credits — so the player knows what they can afford.
+	_credits_label = Label.new()
+	_credits_label.add_theme_font_override("font", UIFonts.mono_bold())
+	_credits_label.add_theme_font_size_override("font_size", 36)
+	_credits_label.add_theme_color_override("font_color", Palette.AMBER)
+	inner.add_child(_credits_label)
+
 	# Auto-select countdown bar — drains amber→red over AUTO_PICK_SECONDS.
 	_countdown_bar = ProgressBar.new()
 	_countdown_bar.show_percentage = false
@@ -185,6 +153,7 @@ func _build_header() -> Control:
 # ── Cards ──────────────────────────────────────────────────────────────────
 
 func _populate_cards(wave_number: int) -> void:
+	_refresh_credits_label()
 	for c: Control in _card_nodes:
 		c.queue_free()
 	_card_nodes.clear()
@@ -298,7 +267,7 @@ func _build_card(info: Dictionary, index: int) -> Control:
 	# Credit cost — amber when affordable, coral when not.
 	var uid_for_cost: String = info.get("id", "")
 	var cost_val: int = _cost_for(uid_for_cost)
-	var affordable: bool = _credits_value >= cost_val
+	var affordable: bool = _can_afford(cost_val)
 	var cost_label := Label.new()
 	cost_label.text = "%d₵" % cost_val
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -309,8 +278,7 @@ func _build_card(info: Dictionary, index: int) -> Control:
 	right_vbox.add_child(cost_label)
 
 	# Transparent full-rect button on top catches the tap for the whole card.
-	# Only pickable on wave-clear AND when affordable; a manual review open (UPGRADES
-	# button) is read-only so the shop can't be farmed by reopening the panel.
+	# Only affordable cards are buyable (and show hover); the rest are greyed.
 	var btn := Button.new()
 	btn.flat = false
 	btn.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -318,18 +286,12 @@ func _build_card(info: Dictionary, index: int) -> Control:
 	btn.add_theme_stylebox_override("hover", UIStyles.card_hover())    # card highlights on hover
 	btn.add_theme_stylebox_override("pressed", UIStyles.card_hover())
 	btn.add_theme_stylebox_override("focus", UIStyles.empty())
+	btn.disabled = not affordable
 	card.add_child(btn)
 
-	if _advance_on_close:
-		# Wave-clear shop: only affordable cards are buyable (and thus hoverable).
-		btn.disabled = not affordable
-		if affordable:
-			var idx := index
-			btn.pressed.connect(func(): _choose(idx))
-	else:
-		# Read-only review: keep cards enabled so they show hover; tapping one closes.
-		btn.disabled = false
-		btn.pressed.connect(func(): _slide_down())
+	if affordable:
+		var idx := index
+		btn.pressed.connect(func(): _choose(idx))
 
 	return margin
 
@@ -337,7 +299,7 @@ func _build_card(info: Dictionary, index: int) -> Control:
 
 func _pick_three(wave_number: int) -> Array[String]:
 	var pool: Array[String] = []
-	for entry: Dictionary in UPGRADE_POOL:
+	for entry: Dictionary in UpgradeDefs.POOL:
 		var id: String = entry["id"]
 		if not entry.get("enabled", true):
 			continue   # effect not implemented yet — keep out of the shop
@@ -351,30 +313,26 @@ func _pick_three(wave_number: int) -> Array[String]:
 		result.append(id)
 	return result
 
+func _refresh_credits_label() -> void:
+	if _credits_label:
+		_credits_label.text = "%s ₵ available" % BigNum.from(_credits_value).to_display()
+
 func _get_upgrade_info(upgrade_id: String) -> Dictionary:
-	for entry: Dictionary in UPGRADE_POOL:
-		if entry["id"] == upgrade_id:
-			return entry
-	return {}
+	return UpgradeDefs.get_info(upgrade_id)
 
 func _cost_for(uid: String) -> int:
-	var info: Dictionary = _get_upgrade_info(uid)
-	var rarity: int = info.get("rarity", 0)
-	var level: int = _levels.get(uid, 0)
-	var base: int = RARITY_BASE[rarity]
-	return int(round(base * pow(COST_GROWTH, level) * _discount_mult()))
+	var info: Dictionary = UpgradeDefs.get_info(uid)
+	return UpgradeDefs.cost_for(info.get("rarity", 0), _levels.get(uid, 0), UpgradeDefs.discount_mult())
 
-func _discount_mult() -> float:
-	var owned: Dictionary = SaveManager.get_value("spaceport", "upgrades", {})
-	var lvl: int = owned.get("upgrade_discount", 0)
-	return maxf(0.75, 1.0 - 0.05 * lvl)
+func _can_afford(cost: int) -> bool:
+	return _credits_value >= float(cost) - CREDIT_EPS
 
 func _choose(index: int) -> void:
 	if index >= _current_upgrades.size():
 		return
 	var uid: String = _current_upgrades[index]
 	var cost: int = _cost_for(uid)
-	if _credits_value < cost:
+	if not _can_afford(cost):
 		return   # not affordable — ignore the tap
 	_auto_timer.stop()
 	_pending_uid = uid
@@ -395,8 +353,6 @@ func _on_spend_result(context: String, success: bool) -> void:
 	_slide_down()
 
 func _on_wave_completed(wave_number: int) -> void:
-	_advance_on_close = true
-	_close_catcher.visible = false   # wave-clear: cards are tappable, no catcher
 	_populate_cards(wave_number)
 	# If every upgrade is unlocked-but-maxed there's nothing to offer — skip the
 	# panel entirely and go straight to the next wave so the loop never stalls.
@@ -405,28 +361,6 @@ func _on_wave_completed(wave_number: int) -> void:
 		return
 	_header_wave.text = "Wave %d complete" % wave_number
 	_start_countdown()
-	_slide_up()
-
-# Manual open/close from the bottom-HUD "UPGRADES" button. Reviews the current
-# wave's offer without advancing the wave or auto-picking.
-func _on_upgrades_toggle_requested() -> void:
-	if _panel.visible:
-		# Ignore while an active wave-clear pick is up — only a manual review closes here,
-		# otherwise tapping UPGRADES would advance the wave without choosing.
-		if not _advance_on_close:
-			_slide_down()
-		return
-	_advance_on_close = false
-	_populate_cards(_current_wave)
-	_header_wave.text = "Upgrades"
-	# Cards now close the review on tap (and show hover). Only fall back to the
-	# full-panel catcher when there are no cards to tap, so it never soft-locks.
-	if _current_upgrades.is_empty():
-		_footer.text = "REVIEW — TAP ANYWHERE TO CLOSE"
-		_close_catcher.visible = true
-	else:
-		_footer.text = "REVIEW — TAP A CARD TO CLOSE"
-		_close_catcher.visible = false
 	_slide_up()
 
 func _start_countdown() -> void:
@@ -452,7 +386,7 @@ func _on_auto_tick() -> void:
 func _auto_pick_affordable() -> void:
 	var affordable: Array[int] = []
 	for i: int in _current_upgrades.size():
-		if _credits_value >= _cost_for(_current_upgrades[i]):
+		if _can_afford(_cost_for(_current_upgrades[i])):
 			affordable.append(i)
 	if affordable.is_empty():
 		_slide_down()   # nothing affordable → advance with no purchase
@@ -471,13 +405,10 @@ func _slide_up() -> void:
 
 func _slide_down() -> void:
 	_auto_timer.stop()
-	_close_catcher.visible = false
-	var advance := _advance_on_close
 	var tween := create_tween()
 	tween.tween_property(_panel, "position:y", PANEL_HIDDEN_Y, 0.25).set_ease(Tween.EASE_IN)
 	tween.tween_callback(func():
 		_panel.visible = false
 		TickSystem.resume()
-		if advance:
-			EventBus.ready_for_next_wave.emit()
+		EventBus.ready_for_next_wave.emit()
 	)
