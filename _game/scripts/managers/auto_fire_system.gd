@@ -1,7 +1,7 @@
 ## Purpose: Ship fires automatically — targets nearest enemy in range, manages projectile pool.
 extends Node
 
-const SHIP_POSITION: Vector2 = Vector2(540.0, 1700.0)
+const SHIP_POSITION: Vector2 = Vector2(540.0, 1580.0)
 
 # Stats — defaults match DESIGN.md base values
 var fire_rate: float = 1.0
