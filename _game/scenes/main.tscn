@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://c2y7qujy8cnn2" path="res://_game/scripts/managers/starfield_layer.gd" id="2_2jfle"]
 [ext_resource type="Script" uid="uid://d2rntq2npesul" path="res://_game/scripts/managers/ship_manager.gd" id="2_tr8tv"]
 [ext_resource type="Script" uid="uid://c1v0irn7njx34" path="res://_game/scripts/managers/wave_manager.gd" id="3_n8jn0"]
+[ext_resource type="Script" uid="uid://268he8k1uxkv" path="res://_game/scripts/ui/range_indicator.gd" id="4_0awk6"]
 [ext_resource type="Script" uid="uid://bjb08p5uxoee6" path="res://_game/scripts/managers/enemy_manager.gd" id="4_2jfle"]
 [ext_resource type="Script" uid="uid://cavrfjjs2bmnp" path="res://_game/scripts/managers/effect_layer.gd" id="4_thug3"]
 [ext_resource type="Script" uid="uid://df38inow62cog" path="res://_game/scripts/managers/auto_fire_system.gd" id="5_thug3"]
@@ -21,6 +22,7 @@
 [ext_resource type="PackedScene" uid="uid://7fg1g3tmjx6k" path="res://_game/scenes/effects/projectile_basic.tscn" id="17_prj"]
 [ext_resource type="Script" uid="uid://bnat3ntmxhorp" path="res://_game/scripts/ui/wave_announcement.gd" id="20_vifi6"]
 [ext_resource type="Script" uid="uid://b2ucjmm1kea1f" path="res://_game/scripts/ui/stats_panel.gd" id="21_3w7h5"]
+[ext_resource type="Script" uid="uid://do61o3iu567lu" path="res://_game/scripts/ui/catalog_panel.gd" id="23_ur2bb"]
 
 [node name="Main" type="Node2D" unique_id=1099058480]
 script = ExtResource("1_6v3cb")
@@ -33,12 +35,15 @@ script = ExtResource("2_2jfle")
 [node name="GameField" type="Node2D" parent="." unique_id=642334016]
 
 [node name="Ship" type="Node2D" parent="GameField" unique_id=928331467]
-position = Vector2(540, 1700)
+position = Vector2(540, 1580)
 script = ExtResource("2_tr8tv")
 
 [node name="ShipVisual" type="Polygon2D" parent="GameField/Ship" unique_id=123456789]
 color = Color(0.31, 0.765, 0.969, 1)
 polygon = PackedVector2Array(0, -30, -20, 20, 20, 20)
+
+[node name="RangeIndicator" type="Node2D" parent="GameField/Ship" unique_id=1058355368]
+script = ExtResource("4_0awk6")
 
 [node name="EnemyLayer" type="Node2D" parent="GameField" unique_id=1947521138]
 
@@ -95,6 +100,9 @@ script = ExtResource("20_vifi6")
 
 [node name="StatsPanel" type="CanvasLayer" parent="UI" unique_id=128536480]
 script = ExtResource("21_3w7h5")
+
+[node name="CatalogPanel" type="CanvasLayer" parent="UI" unique_id=882770779]
+script = ExtResource("23_ur2bb")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1703619245]
 position = Vector2(540, 960)
