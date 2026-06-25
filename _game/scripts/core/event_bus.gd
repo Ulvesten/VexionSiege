@@ -20,6 +20,10 @@ signal enemy_killed(enemy_data: Dictionary)
 signal enemy_damaged(position: Vector2, amount: float, is_crit: bool)
 signal enemy_reached_ship(damage: float)
 
+# Wave threat (Wave Info panel): total HP set at wave start, then the live aggregate.
+signal wave_threat_total(total_hp: float, counts: Dictionary)
+signal wave_threat_changed(current_hp: float, max_hp: float, counts: Dictionary)
+
 # Effects / feedback
 signal credit_awarded(position: Vector2, amount: float)
 
