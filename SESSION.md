@@ -6,20 +6,38 @@
 
 ---
 
-## Current status
-**Session 09: locked all economy/progression direction, wrote the spec + implementation
-plan, and did a codebase polish pass that caught 4 real bugs (1 critical).** No Godot MCP
-this session (only Unity/coplay MCP available), so code fixes are reasoned, not runtime-
-verified — re-test when Godot is up. The credit-shop numbers + Spaceport pricing/unlock model
-are now fully decided (see "Session 09" below). Next session = EXECUTE THE PLAN.
+## Current status (end of Session 13 — 2026-06-24, Godot MCP live the whole session)
+The game is in great shape and almost everything is **live-verified in Godot 4.7 via MCP**.
+Recent sessions delivered: economy/progression (credit shop, exponential Spaceport, save
+persistence) → live-verified; UPGRADES button = read-only upgrade CATALOG; combat-feel
+(range ring, enemy HP bars, ship raised); and Session 13's big batch (below). The core loop,
+shop, Spaceport, save round-trip, Game Over, and the new HUD all work.
 
-## ⏭️ NEXT SESSION — TEST THE IMPLEMENTATION IN GODOT (all 9 plan tasks CODE-COMPLETE, UNVERIFIED)
-The full economy/progression plan was implemented this session **without Godot** (only Unity
-MCP available), so NOTHING is runtime-verified. Open Godot, fix any parse errors, then test:
-1. **Save**: die → relaunch → Void Cores/Spaceport/best_wave persist; `meta/version=1` written.
-2. **In-run shop**: wave-1 clear → a Common shows `5₵` amber and is buyable (~6 cr); buying
-   deducts credits + advances; unaffordable cards grey/coral; countdown bar drains amber→red;
-   at 0s a random AFFORDABLE card auto-buys (or skips if none); the 3 no-op upgrades never offer.
+### Session 13 shipped + verified
+- Fixed: exact-credits buy (float epsilon), Game Over text + overlaps, Spaceport overlaps.
+- Added: hyperdrive starfield on wave clear; full HUD restructure (Credits→top bar; new Wave
+  Info band with aggregate enemy-HP bar that ticks down + enemy composition chips; footer HP
+  bar with blue shield overlay + Energy placeholder). New shared `EnemyDefs` + wave-threat
+  signals. All screenshot/eval-verified.
+
+## ⏭️ NEXT SESSION — open ideas (nothing half-finished; pick any)
+- **Abilities** — the natural next build. `AbilityManager` is a stub, the 3 HUD ability slots +
+  the new Energy bar are placeholders waiting to be wired (Energy → ability cost/cooldown).
+- **Wire the 3 no-op upgrades** (chain_lightning / explosive_round / second_wind) so they leave
+  the catalog "SOON" state and become real offers.
+- **Unwired meta effects** — void_extractor / starting_credits / engine_coolant are priced +
+  purchasable but don't apply their effect yet.
+- **Polish** — fonts (TTFs), audio files (drop per audio/README.md), enemy sprite art.
+
+## ⚠️ Standing housekeeping
+- **Restart Godot once** to clear the leftover enemy-sprite import-error spam (files already
+  moved to `_game/assets/sprites/enemies/_raw_unprocessed/`; editor cache just needs a restart).
+- `DebugLogger` autoload prints `[DBG]` events to game stdout (read via `logs_read source=game`)
+  — invaluable for verifying flow. `editor_manage(op=game_eval)` runs GDScript in the live game
+  (managers are scene nodes: `get_node("/root/Main/GameField/<Mgr>")`). MCP capture/eval need the
+  GAME WINDOW FOCUSED; if it drops, click the game window. `monitors_get` reads the EDITOR, not
+  the game — walk `get_tree().root` for real game stats.
+- `ability_manager` overclock never reverts (unused stub; fix when abilities are wired).
 3. **Spaceport**: costs scale ×1.6/level; Tier-1 buyable, Tier-2+ greyed "🔒 Wave 50/100/150";
    reaching the threshold (best_wave) un-greys a tier on reopen.
 4. **Game Over**: ENEMIES KILLED non-zero; CREDITS EARNED = this run; VOID CORES EARNED = this
@@ -65,7 +83,149 @@ band has a name + colour shown as a card eyebrow + tinted card border (Spaceport
 `spaceport_panel._band_for(tier)`. ⇒ TEST: cards in each band show the right name/colour; locked
 bands stay greyed with "🔒 Wave N".
 
+## ✅ Session 13 — affordability + game-over/spaceport overlap fixes, hyperdrive, HUD restructure
+### Fixes (all live-verified via screenshot)
+- **Exact-credits buy bug**: credits are floats (kills give fractional/multiplied amounts) so an
+  exact-cost buy read as 4.9999 vs 5 and failed. Added `CREDIT_EPS` tolerance to the shop
+  affordability check (`upgrade_panel._can_afford`) AND `economy_manager.spend_credits`. Equal now
+  buys + hovers. ✓
+- **Game Over**: removed the "RUN ENDED" red eyebrow; title "Ship Destroyed" on one line; subtitle
+  now "Reached Wave N · Milky Way" (was a hardcoded "—"); **overlap fixed** — stats + reward blocks
+  were bare `Panel`s (collapse to 0px) → switched to `PanelContainer`. Verified clean. ✓
+- **Spaceport overlap**: cards were bare `Panel`s → collapsed + stacked + START NEW RUN floating
+  over them. Switched card to `PanelContainer` (sizes to content). Verified clean 2-col grid. ✓
+- **Hyperdrive on wave clear** (`starfield_layer`): 0→1→0 warp burst on `wave_completed`, driven on
+  the RAW `_process` clock (TickSystem pauses for the shop), stars render as vertical streaks
+  (longer for nearer layers). Verified streaks render. ✓
+
+### HUD restructure + Wave Info — DONE + LIVE-VERIFIED (screenshot + eval)
+Verified: top bar shows wave + credits + gear; Wave Info shows "ENEMIES" coral bar + "N hp" +
+composition chips (● 5 ∴ 1); footer shows HP + EN side by side + buttons + abilities. Threat bar
+TICKS DOWN (eval: total 94.24 → current 86.8 during combat, counts {drone:7}). Shield renders as
+a blue overlay on the left of the HP bar (verified with a simulated 40/60 shield). Fixed a
+max-HP label lag ("120/100") by refreshing the HP value label in `_on_upgrade_applied`.
+- **hud.gd fully rewritten**: TOP BAR = wave (left) + **Credits moved here** (right) + gear. New
+  **WAVE INFO band** (old HP-bar location): aggregate enemy-HP threat bar (coral) + "N hp" + enemy
+  **composition chips** (glyph×count, type-coloured). FOOTER = **HP bar with shield overlaid on
+  top** (blue, shares HP scale) + **Energy bar** (right, static full placeholder), then
+  UPGRADES/STATS + ability slots. Footer height 196→252, wave-info band 132px.
+- **Threat backend** (new): `EnemyDefs` (class_name) — shared enemy base-stats dict (+ glyphs);
+  `enemy_manager` refactored to use it. New EventBus `wave_threat_total` / `wave_threat_changed`.
+  `wave_manager._emit_wave_threat()` sums the wave's total HP at start; `enemy_manager` tracks
+  current (−damage, −escaped HP) + counts (−on death/escape) and emits. HUD renders it.
+- ⚠️ NEXT: focus the game window + screenshot to verify the new HUD layout, shield-over-HP render,
+  credits position, wave-info bar + chips. Likely needs spacing tweaks.
+
+## ✅ Session 12 — UPGRADES button → full upgrade CATALOG (read-only showcase)
+Rebuilt the bottom-HUD UPGRADES button: was a read-only review of the 3 current offers, now
+opens a full **scrollable catalog of every upgrade**, grouped Offensive/Defensive/Economy, each
+row showing icon, name, desc, current **Lv N/Max**, and right-side state: next **cost (N₵)**, or
+**MAX** (green), or **🔒 W#** (wave-locked), or **SOON** (effect not wired). Pure showcase —
+buying still only at the wave-clear shop (keeps one-buy-per-wave). Drag handle + ✕ close, modeled
+on StatsPanel.
+- **Shared `UpgradeDefs`** (`_game/scripts/utils/upgrade_defs.gd`, class_name) now the single
+  source of truth for the upgrade POOL (+ `cat` category) and cost math (`cost_for`,
+  `discount_mult`). Both the shop and catalog read it → no drift.
+- **`upgrade_panel.gd` refactored**: removed its local UPGRADE_POOL/RARITY_BASE/COST_GROWTH and
+  the old manual-review mode (`_on_upgrades_toggle_requested`, `_close_catcher`, `_advance_on_close`)
+  — it's now purely the wave-clear shop, delegating to UpgradeDefs.
+- **New `catalog_panel.gd`** on `/Main/UI/CatalogPanel` (CanvasLayer, layer 12), handles
+  `upgrades_toggle_requested`, mirrors levels via `upgrade_purchased`, tracks wave for 🔒 gating.
+- ⚠️ VERIFIED: compiles clean (game booted + ran to wave 3 with refactor), shop still works
+  (telemetry: wave1→buy fire_rate→wave2→buy damage→wave3). Catalog VISUAL not yet confirmed —
+  MCP capture bridge needs the game window focused; pending a real tap of UPGRADES or a focused
+  game_eval. No parse errors.
+
+## ✅ Session 11 — wave-stall bug fixed + combat-feel features (all live-verified)
+### 🐛 CRITICAL BUG FIXED — "stuck at wave 3" (root-caused via DebugLogger telemetry)
+Root cause: `WaveManager` decremented `_enemies_remaining` ONLY in `_on_enemy_killed`, but an
+enemy that REACHES THE SHIP is removed via `enemy_manager._release_enemy(.., false)` which does
+NOT emit `enemy_killed`. So any enemy that slipped past the ship was never counted → the wave's
+remaining count never hit 0 → `all_enemies_cleared` never fired → permanent stall. Waves 1–2
+completed only because the player killed everything; wave 3 (9 enemies) let one through. Fix:
+WaveManager now also listens to `enemy_reached_ship` and both removal paths funnel through a
+shared `_account_enemy_removed()` (guarded by `_wave_active`). Verified live: telemetry showed
+waves 3→4→5 all completing (previously dead-ended at `wave_started w=3`). ✓
+
+### Combat-feel features (all verified via screenshot + game_eval)
+- **Range indicator** — rotating dashed blue circle around the ship showing attack range.
+  New `_game/scripts/ui/range_indicator.gd` on a `RangeIndicator` Node2D child of Ship; radius
+  follows `upgrade_applied("range")` (base 600), spins via TickSystem. ✓
+- **Ship raised** off the bottom bar: `SHIP_POSITION` 1700→**1580** in enemy_manager.gd +
+  auto_fire_system.gd, and Ship node in main.tscn. ✓
+- **Enemy HP bars** — minimal under-enemy bar (`enemy_manager._ensure_hp_bar`/`_update_hp_bar`):
+  24×3 (scales with enemy), green→coral by hp ratio, created lazily per pooled enemy, updated on
+  configure + apply_damage. ✓
+- **Credits shown in the wave-clear shop** — `upgrade_panel._credits_label` ("N ₵ available",
+  amber) in the header, refreshed on credits_changed + populate. ✓
+
+### Answered: UPGRADES button = read-only review (intended)
+The bottom UPGRADES button opens a READ-ONLY review of current offers — purchases happen only at
+the wave-clear shop (one per wave; prevents farming by reopening). This session: review cards now
+hover AND close the panel on tap (`upgrade_panel`: review-mode btn enabled → `_slide_down`),
+footer "REVIEW — TAP A CARD TO CLOSE". So it's no longer a dead screen.
+
+## ✅ Session 10 — LIVE-VERIFIED in Godot 4.7 via MCP (+ fixes + UX polish)
+Booted the game through the godot-ai MCP and verified the Session 09 work for real:
+- **Compiles + boots clean** — no GDScript parse errors; only pre-existing enemy-sprite import
+  spam (handled below).
+- **Credit shop end-to-end** (read from new DebugLogger telemetry): wave 1 → shop → auto-bought
+  affordable `projectile_speed` @5₵ → spend ok → level up → wave 2. Card showed "Lv 1/10 @ 8₵"
+  (5×1.55¹=8 ✓), Lv0 cards @5₵, affordable=amber / unaffordable=coral. ✓
+- **Spaceport bands/tiers/costs** (read from live built UI): INNER CORE (Reinforced Hull 10vc,
+  Reactor Boost 15vc), OUTER RIM unlocked at best_wave 60 (Shield Gen 25, Targeting 20), DEEP
+  VOID locked → "🔒 Wave 100" greyed (modulate a=0.45). ✓
+- **NEW telemetry tool**: `DebugLogger` autoload (`_game/scripts/core/debug_logger.gd`, registered
+  in project.godot) prints structured `[DBG] …` EventBus events to game stdout → readable via
+  `logs_read(source="game")`. Also: `editor_manage(op="game_eval")` runs GDScript in the live
+  game — use `get_node("/root/Main/GameField/<Mgr>")` (managers are NOT autoloads). Flip
+  DebugLogger.ENABLED=false to silence for release.
+
+### BUG FOUND + FIXED live (pre-existing) — Spaceport purchases ate cores, never leveled
+`spaceport_system._on_spend_result` gated on `_pending_purchase_id` (set only by the unused
+`try_purchase`), so panel-driven buys spent Void Cores but never incremented the level. Now the
+result's `context` IS the upgrade id → increment directly. Verified: lvl 0→1→2, cores 590→564,
+cost 10→16 (×1.6). ✓
+
+### Session 09 FOUNDATION — fully verified live via game_eval (all ✓)
+- **Meta-loop restart** (the critical S09 fix): spaceport_opened→closed drove state SPACEPORT→
+  PLAYING, wave→1, credits→0, Game Over panel hidden. die→Spaceport→new run works. ✓
+- **Game Over real stats** (Task 9): simulated 10 kills incl. 1 boss + death → panel showed real
+  ENEMIES/CREDITS EARNED/BEST WAVE; REWARD included boss bonus (boss_kills×5). Boss-kill reward
+  fix confirmed. ✓
+- **Save round-trip** (Tasks 1–2): wrote then RELAUNCHED — disk had meta/version=1, lifetime
+  best_wave/total_runs/total_void_cores_ever, economy/void_cores, spaceport/upgrades; all loaded
+  back correctly on fresh boot. ✓
+- **Cleanup**: wiped the synthetic test save (`SaveManager.delete_save()`) so next launch starts
+  from a clean slate (0 cores, no best_wave, wave 1).
+- Note: a transient `spaceport.visible=true` was observed once right after a simulated death but
+  did NOT reproduce on a clean open→close — not a real bug (state flux during the simulated death).
+
+### UX polish this session (code done; hover/drag visually unverified, low risk)
+- **Ability slots no longer clipped** off the bottom HUD (tightened spacing + 44px slots). ✓ (shot)
+- **Icon backgrounds removed** — `ui_icons._key_out_background` chroma-keys the dark JPG square to
+  transparent at load (luminance LO .16 / HI .34 feather, cached). Gear menu button now borderless
+  (box only on hover). Verified clean gear + credits icon on screen. ✓
+- **Hover effects** — `UIStyles.btn_accent()` + `card_hover()`; applied to HUD buttons, gear,
+  upgrade cards (incl. read-only review, which now also closes on card tap), spaceport cards,
+  START NEW RUN, Game Over buttons.
+- **Drag-to-move** — Stats panel got a top grab handle; drag up/down via mouse/touch, snaps
+  open/closed on release (`stats_panel._on_handle_input`/`_settle`).
+
+### ⚠️ Import-error spam — NEEDS ONE EDITOR RESTART to clear
+The 5 unused enemy PNGs were moved to `_game/assets/sprites/enemies/_raw_unprocessed/` (with a
+`.gdignore`). Disk is correct, but Godot's in-session filesystem cache still queues the old
+imported paths and keeps erroring. A full rescan only happens on **editor restart** — restart
+Godot once and the "Cannot open MD5 / Failed loading resource" spam is gone for good. (No MCP op
+forces a full rescan.) Source art preserved in that folder for a future boss/elite skin.
+
+### MCP gotcha logged
+`monitors_get` (object/node_count etc.) reads the **editor** process, not the running game — it
+reported 23k nodes; the real game tree is ~379. To measure the game, walk `get_tree().root` or
+read `Performance.get_monitor(...)` via `game_eval`. No leak existed.
+
 ## ⏳ Still open (not done)
+- Restart Godot once to clear the enemy-sprite import spam (see above).
 - `ability_manager` overclock never reverts (its boosted emit trips its own listener) — fix
   when abilities are actually wired; it's an unused stub today.
 
