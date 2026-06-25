@@ -14,6 +14,10 @@ func _ready() -> void:
 	TickSystem.tick.connect(_on_tick)
 	EventBus.game_started.connect(_begin_first_wave)
 	EventBus.enemy_killed.connect(_on_enemy_killed)
+	# An enemy that reaches the ship is ALSO removed from the wave but is NOT a kill
+	# (no enemy_killed). Without counting it, _enemies_remaining never hit 0 and the
+	# wave stalled forever the moment any enemy got through (showed up as "stuck at wave 3").
+	EventBus.enemy_reached_ship.connect(_on_enemy_reached_ship)
 	EventBus.all_enemies_cleared.connect(_on_all_enemies_cleared)
 	EventBus.ready_for_next_wave.connect(_start_next_wave)
 
@@ -36,7 +40,19 @@ func _start_next_wave() -> void:
 	_enemies_to_spawn = _build_spawn_list()
 	_enemies_remaining = _enemies_to_spawn.size()
 	_spawn_timer = 0.0
+	_emit_wave_threat()
 	EventBus.wave_started.emit(wave_number)
+
+# Total HP + type composition of the whole wave, for the Wave Info threat bar.
+func _emit_wave_threat() -> void:
+	var counts: Dictionary = {}
+	var total_hp: float = 0.0
+	var hp_mult: float = get_hp_multiplier()
+	var elite_mult: float = 1.5 if is_elite_wave() else 1.0
+	for t: String in _enemies_to_spawn:
+		counts[t] = counts.get(t, 0) + 1
+		total_hp += EnemyDefs.base_hp(t) * hp_mult * elite_mult
+	EventBus.wave_threat_total.emit(total_hp, counts)
 
 func _build_spawn_list() -> Array[String]:
 	var count: int = 5 + floori(wave_number * 1.4)
@@ -88,6 +104,18 @@ func _spawn_next_enemy() -> void:
 func _on_enemy_killed(data: Dictionary) -> void:
 	if data.get("type", "") == "boss":
 		_boss_kills_this_run += 1
+	_account_enemy_removed()
+
+# Reaching the ship removes the enemy from the wave just like a kill does — count it
+# so the wave can complete even when enemies slip past the ship's fire.
+func _on_enemy_reached_ship(_damage: float) -> void:
+	_account_enemy_removed()
+
+# Single place that decrements the live count and fires completion when the wave is
+# fully spawned and empty. Both removal paths (kill + ship-reach) funnel through here.
+func _account_enemy_removed() -> void:
+	if not _wave_active:
+		return
 	_enemies_remaining -= 1
 	if _enemies_remaining <= 0 and _enemies_to_spawn.is_empty():
 		EventBus.all_enemies_cleared.emit()
