@@ -260,15 +260,16 @@ func _build_sp_card(entry: Dictionary) -> Control:
 	var band: Dictionary = _band_for(tier)
 	var band_color: Color = band["color"]
 
-	var card := Panel.new()
+	# PanelContainer SIZES to its content — a bare Panel collapsed to ~0px and every
+	# card stacked at the same Y (the overlapping-cards bug).
+	var card := PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	# Border tinted to the progression band so each band reads distinctly.
 	var band_border := Color(band_color.r, band_color.g, band_color.b, 0.45)
 	card.add_theme_stylebox_override("panel", UIStyles.panel(Palette.S1, band_border, 30))
 
-	# MarginContainer inside gives proper padding and propagates size
+	# MarginContainer gives inner padding; PanelContainer lays it out (no anchors).
 	var margin := MarginContainer.new()
-	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left",   36)
 	margin.add_theme_constant_override("margin_right",  36)
 	margin.add_theme_constant_override("margin_top",    36)
@@ -357,11 +358,11 @@ func _build_sp_card(entry: Dictionary) -> Control:
 	if not unlocked:
 		card.modulate = Color(1, 1, 1, 0.45)   # greyed locked terminal
 
-	# Invisible button overlay for tap-to-purchase (disabled while the tier is locked)
+	# Tap overlay — fills the card (PanelContainer lays it over the content); on top so
+	# it catches the tap and shows the hover highlight.
 	var btn := Button.new()
 	btn.flat = false
 	btn.disabled = not unlocked
-	btn.set_anchors_preset(Control.PRESET_FULL_RECT)
 	btn.add_theme_stylebox_override("normal",  UIStyles.empty())
 	btn.add_theme_stylebox_override("hover",   UIStyles.card_hover())   # card highlights on hover
 	btn.add_theme_stylebox_override("pressed", UIStyles.card_hover())

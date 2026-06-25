@@ -6,6 +6,7 @@ var _enemies_val: Label
 var _credits_earned_val: Label
 var _best_wave_val: Label
 var _reward_val: Label
+var _subtitle: Label
 
 var _wave_reached: int = 0
 var _credits_earned: BigNum = BigNum.from(0.0)
@@ -56,41 +57,35 @@ func _build() -> void:
 	content.add_theme_constant_override("separation", 0)
 	margin.add_child(content)
 
-	# "RUN ENDED" eyebrow — 9px * 3 = 27px mono coral, tracking .2em
-	var eyebrow := Label.new()
-	eyebrow.text = "RUN ENDED"
-	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	eyebrow.add_theme_font_override("font", UIFonts.mono())
-	eyebrow.add_theme_font_size_override("font_size", 27)
-	eyebrow.add_theme_color_override("font_color", Palette.CORAL)
-	eyebrow.custom_minimum_size = Vector2(0, 60)   # margin-top 20px * 3
-	content.add_child(eyebrow)
+	# Top breathing room (replaces the removed "RUN ENDED" eyebrow).
+	var title_pad := Control.new()
+	title_pad.custom_minimum_size = Vector2(0, 24)
+	content.add_child(title_pad)
 
-	# "Ship\nDestroyed" — 36px * 3 = 108px display bold
+	# "Ship Destroyed" — 36px * 3 = 108px display bold
 	var title := Label.new()
-	title.text = "Ship\nDestroyed"
+	title.text = "Ship Destroyed"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_override("font", UIFonts.display_bold())
-	title.add_theme_font_size_override("font_size", 108)
+	title.add_theme_font_size_override("font_size", 96)
 	title.add_theme_color_override("font_color", Color.WHITE)
-	title.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD
 	content.add_child(title)
 
-	# Subtitle — 13px * 3 = 39px display muted
-	var sub := Label.new()
-	sub.text = "Wave — · Milky Way"
-	sub.name = "GoSub"
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub.add_theme_font_override("font", UIFonts.display())
-	sub.add_theme_font_size_override("font_size", 39)
-	sub.add_theme_color_override("font_color", Palette.MUTED)
-	sub.custom_minimum_size = Vector2(0, 72)   # margin-bottom 24px * 3
-	content.add_child(sub)
+	# Subtitle — updated with the real wave on game over (was a hardcoded "—").
+	_subtitle = Label.new()
+	_subtitle.text = "Milky Way"
+	_subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_subtitle.add_theme_font_override("font", UIFonts.display())
+	_subtitle.add_theme_font_size_override("font_size", 39)
+	_subtitle.add_theme_color_override("font_color", Palette.MUTED)
+	_subtitle.custom_minimum_size = Vector2(0, 72)   # margin-bottom 24px * 3
+	content.add_child(_subtitle)
 
-	# Stats block — S1 bg, BORDER2 border, radius 36 (12px * 3)
-	var stats_panel := Panel.new()
+	# Stats block — PanelContainer so it SIZES to its rows (a bare Panel collapses to
+	# ~0px and the rows overlap the blocks below — that was the overlap bug).
+	var stats_panel := PanelContainer.new()
 	stats_panel.add_theme_stylebox_override("panel", UIStyles.panel(Palette.S1, Palette.BORDER2, 36))
-	stats_panel.custom_minimum_size = Vector2(0, 0)
 	content.add_child(stats_panel)
 
 	var stats_vbox := VBoxContainer.new()
@@ -107,8 +102,9 @@ func _build() -> void:
 	sp1.custom_minimum_size = Vector2(0, 48)
 	content.add_child(sp1)
 
-	# Void cores reward block — purple border/bg, radius 36
-	var reward := Panel.new()
+	# Void cores reward block — PanelContainer so it sizes to its content (was a bare
+	# Panel → collapsed → overlap).
+	var reward := PanelContainer.new()
 	reward.add_theme_stylebox_override("panel", UIStyles.reward_block())
 	content.add_child(reward)
 
@@ -246,6 +242,7 @@ func _on_game_over(stats: Dictionary) -> void:
 	_wave_reached = stats.get("wave_reached", 0)
 	_wave_val.text = str(_wave_reached)
 	_enemies_val.text = str(stats.get("enemies_killed", 0))
+	_subtitle.text = "Reached Wave %d · Milky Way" % _wave_reached
 	visible = true
 
 # Earned-this-run figures (not lifetime totals). Fires before _on_game_over in the

@@ -42,9 +42,11 @@ func add_credits(amount: float) -> void:
 	EventBus.credits_changed.emit(credits)
 
 func spend_credits(amount: BigNum) -> bool:
-	if not credits.gte(amount):
+	# Tolerance mirrors the shop's affordability check — float-accumulated credits can
+	# read as 4.9999 vs a cost of 5, and an exact-cost buy must still succeed.
+	if credits.value + 0.01 < amount.value:
 		return false
-	credits = credits.sub(amount)
+	credits = credits.sub(amount)   # sub() clamps at 0, so a near-equal buy zeroes out
 	EventBus.credits_changed.emit(credits)
 	return true
 
